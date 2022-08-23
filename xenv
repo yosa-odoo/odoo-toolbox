@@ -1,0 +1,4 @@
+#!/bin/bash
+
+target=$(readlink -f $HOME/odoo-env/Xenv)
+echo "Xenv pointing to $target"

@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    >&2 echo "Needs 1 parameter (branch issue name)"
+    exit 1
+fi
+
+file="$HOME/.current_db"
+nb_ticket=$(cut -c1-7 < "$file")
+version=$( cut -c9- < "$file")
+git checkout -b $version-$nb_ticket-$1-yosa

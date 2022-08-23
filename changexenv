@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    >&2 echo "Needs 1 parameter (venv's name)"
+    exit 1
+fi
+
+# assign new value to symbolic link
+ln -sfn $HOME/odoo-env/$1 $HOME/odoo-env/Xenv
+xenv

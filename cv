@@ -1,0 +1,24 @@
+#!/bin/bash
+
+if [ $# -lt 1 ]; then
+    >&2 echo "Needs 1 parameter (branch_name)"
+    exit 1
+fi
+
+# assign new value to symbolic link
+changexenv $1
+
+# if in odoo arborescence, checks out to the correct version
+case $PWD/ in
+  $HOME/src/all/*) 
+	actual=$PWD
+	cd $HOME/src/all/odoo
+	git checkout $1 
+	cd $HOME/src/all/enterprise
+	git checkout $1
+	cd $actual
+;;
+esac
+
+
+

@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ $# -lt 1 ]; then
+    >&2 echo "Needs 1 parameter (version)"
+    exit 1
+fi
+
+setdb $(getticket)-$1
+getdb

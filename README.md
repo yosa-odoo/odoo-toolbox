@@ -44,5 +44,13 @@ restoredb
 - `killodoo` kills all Odoo processes. It is executed by `copydb`
 - `ldb` lists all databases
 - `dropall`: for each argument _X_, it drops all databases that contain _X_ in their name
+
+- `sdv <version>`: uses `setdb` with the value of the current db (`getdb`) and concatenated with `'-<version>'`
+- `getticket` : extract the ticket number from the db's name
+
+- `branch <branch-s name>` -> `git checkout -b <version>-<#ticket>-<branch's name>-yosa`
+- `cv <version>`: change the value of the `Xenv` symbolic link and checks out version if in Odoo
+- `xenv` : prints out the current point value of the symbolic link
+- `changexenv <target>` : change the value of the symbolic link with the `<target>`'s value
 - `.bash_completion` allows the user to auto complete the arguments of `setdb`, `savedb` and `restoredb` in his terminal
 - `renamedb`: takes one argument X and will rename the current DB into X
