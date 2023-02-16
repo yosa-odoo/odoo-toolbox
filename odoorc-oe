@@ -1,0 +1,6 @@
+#!/bin/sh
+
+path=/home/odoo/src/all/odoo/addons/,/home/odoo/src/all/enterprise
+
+sed -i "/addons_path=.*/c\addons_path=$path" $HOME/.odoorc
+echo "addons_path is equal to '$path'"

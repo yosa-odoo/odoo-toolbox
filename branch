@@ -8,4 +8,4 @@ fi
 file="$HOME/.current_db"
 nb_ticket=$(cut -c1-7 < "$file")
 version=$( cut -c9- < "$file")
-git checkout -b $version-$nb_ticket-$1-yosa
+git checkout -b $version-opw-$nb_ticket-$1-yosa

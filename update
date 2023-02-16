@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -e
+
+versions=${1:-14.0 15.0 saas-15.2 16.0 master}
+repos="odoo enterprise"
+path="$HOME/src/all"
+
+current_branches=""
+
+echo "#### Update of $versions"
+
+# Save the name of the current branches and clean all repos
+for repo in $repos
+do
+    cd $path/$repo
+    current_branches="$current_branches $repo:$(git branch --show-current)"
+    echo
+    echo "### $repo"
+    if [ $# -eq 0 ]
+          then
+        echo "# Cleanup..."
+        git gc --prune=now --force
+    fi
+    echo "# Fetching..."
+    git fetch $repo $versions
+done
+
+# Update all branches
+for repo in $repos
+do
+    echo
+    echo "### $repo"
+    cd $path/$repo
+    for version in $versions
+    do
+        echo "## $version"
+        echo "# Rebasing..."
+        git rebase $repo/$version $version
+    done
+done
+
+echo
+
+# Checkout on saved branches
+for current_branch in $current_branches
+do
+    repo=$(echo $current_branch | cut -d':' -f1)
+    branch=$(echo $current_branch | cut -d':' -f2)
+    echo "### $repo"
+    cd $path/$repo
+    git checkout $branch
+done
+
+echo
+
+notify-send $db "Code updated"

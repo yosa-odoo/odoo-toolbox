@@ -1,0 +1,3 @@
+#!/bin/bash
+
+python3 "$HOME/odoo_tools/finish_time.py" "$@"
