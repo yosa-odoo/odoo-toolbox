@@ -1,0 +1,16 @@
+#!/bin/bash
+
+db=$(getdb)
+
+killodoo
+dropdb --if-exists $db
+
+$HOME/odoo-env/Xenv/bin/python3 $HOME/src/all/odoo/odoo-bin --stop-after-init $@
+
+psql -d $db -c "update ir_cron set active=false;"
+psql -d $db -c "insert into ir_config_parameter(key,value) values ('database.expiration_date','2998-05-07 13:16:50');"
+
+savedb init
+
+notify-send $db "The database is ready"
+play_complete

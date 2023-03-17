@@ -1,0 +1,25 @@
+#!/bin/bash
+
+title=${1:-Odoo State}
+
+extract_version() {
+        echo $1 | grep -oE '(master|(saas-)?[0-9]{2}\.[0-9])' | head -1
+}
+
+get_py_version() {
+        folder_path=$(readlink -f $HOME/odoo_env/XX )
+	if [ -d $folder_path ]; then
+		extract_version $folder_path
+	fi
+}
+
+echo "$title"
+echo "	PY: $(get_py_version)"
+
+cd $HOME/src/all/odoo
+echo "	OC: $(git branch --show-current)"
+
+cd $HOME/src/all/enterprise
+echo "	OE: $(git branch --show-current)"
+
+echo "	DB: $(getdb)"

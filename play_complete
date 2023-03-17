@@ -1,0 +1,3 @@
+#!/bin/bash
+
+aplay -q /usr/share/sounds/purple/send.wav

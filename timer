@@ -1,0 +1,19 @@
+#!/bin/bash
+
+ODOO_PATH="$HOME/src/all"
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+ODOO_VERSION=16.0
+
+repos="odoo enterprise"
+
+for repo in $repos
+do
+  cd "$ODOO_PATH/$repo" || return
+  if [ "$CURRENT_BRANCH" != "$ODOO_VERSION" ]; then
+    echo "Switching branch"
+    git checkout $ODOO_VERSION
+  fi
+done
+echo "On branch 16.0"
+echo "Launching Odoo-Timer"
+"$HOME/src/all/odoo/odoo-bin" --addons-path="/home/odoo/src/all/odoo/addons/,/home/odoo/src/all/enterprise/,/home/odoo/src/all/custom/" --http-port=8666 -d work_time

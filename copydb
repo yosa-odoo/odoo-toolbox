@@ -23,7 +23,9 @@ fi
 
 if $(find_db $to); then
 	dropdb $to
+	rm -r ~/.local/share/Odoo/filestore/$to/
 fi
 
 createdb -T $from $to
-
+mkdir ~/.local/share/Odoo/filestore/$to/
+cp -r ~/.local/share/Odoo/filestore/$from/* ~/.local/share/Odoo/filestore/$to/
