@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if [ "$#" -lt 1 ]; then
+    echo "Usage: script_name <string_to_find> <module:optional> <filetype:optional(default:py)>"
+    exit 1
+fi
+
+to_find=$1
+module=${2:-**}
+file_type=${3:-py}
+
+rg "$to_find" -g "**/${module}/**/*.${file_type}"

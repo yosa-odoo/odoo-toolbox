@@ -7,7 +7,7 @@ extract_version() {
 }
 
 get_py_version() {
-        folder_path=$(readlink -f $HOME/odoo_env/XX )
+        folder_path=$(readlink -f $HOME/odoo-env/Xenv )
 	if [ -d $folder_path ]; then
 		extract_version $folder_path
 	fi

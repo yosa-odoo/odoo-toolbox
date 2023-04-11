@@ -1,5 +1,5 @@
-#!/bin/bash
-
+#!/usr/bin/zsh
+echo $PATH
 db=$(getdb)
 
 killodoo

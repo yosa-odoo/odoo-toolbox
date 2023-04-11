@@ -1,0 +1,13 @@
+#!/usr/bin/env python
+
+# This code was provided by Assistant (a language model trained by OpenAI)
+
+import subprocess
+import sys
+
+
+# Get the arguments passed to the Python script
+args = sys.argv[1:]
+
+# Call the Bash script using subprocess.run
+subprocess.run(["odoo-install"] + args)
