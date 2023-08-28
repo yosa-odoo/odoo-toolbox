@@ -9,19 +9,30 @@ function show_help {
   echo "- The DB name"
   echo ""
   echo "Options:"
-  echo "  -h, --help              Show help"
-  echo "  -o, --odoo VERSION      Set Odoo version"
-  echo "  -d, --database DB       Set database name"
-  echo "  -f, --fetch             If NAME is considered as a branch and if that branch"
-  echo "                          is not found locally, try to find it on remote"
-  echo "                          repositories"
-  echo "  -r, --reset             If the script finds a branch NAME, reset it with the"
-  echo "                          remote one"
-  echo "  -n, --no-init           Avoid DB initialization"
+  echo "  -h, --help"
+  echo "        Show help"
+  echo "  -o VERSION, --odoo VERSION"
+  echo "        Set Odoo version"
+  echo "  -d DB, --database DB"
+  echo "        Set database name"
+  echo "  -f, --fetch"
+  echo "        If NAME is considered as a branch and if that branch is not found "
+  echo "        locally, try to find it on remote repositories"
+  echo "  -R, --reset-branch"
+  echo "        If the script finds the branch NAME, reset it with the remote one"
+  echo "  -n, --no-init"
+  echo "        Avoid DB initialization"
+  echo "  -r, --restore"
+  echo "        Force DB initialization (i.e., if the DB already exists, it will "
+  echo "        restore it to its initialization savepoint"
+  echo "  -i MODULES, --install-modules MODULES"
+  echo "        Install the list of modules at the end of the configuration"
+  echo "  -I MODULES, --init-modules MODULES"
+  echo "        Same as -i but delete the existing DB first"
   echo ""
   echo "If NAME starts with '<version>-', the script will consider NAME as a potential"
   echo "branch name. It will therefore check in the local repositories to find and use"
-  echo "it. Options -f and -r are only relevant in such situation."
+  echo "it. Options -f and -R are only relevant in such situation."
   echo ""
   echo "If -d is not defined, the script will define the DB name itself:"
   echo "- If NAME is a branch and contains an OPW number, the DB name will be:"
@@ -42,8 +53,11 @@ odoo=""
 database=""
 name=""
 fetch=false
-reset=false
+reset_branch=false
 init=true
+restore_init=false
+modules_to_init=""
+modules_to_install=""
 
 
 
@@ -64,11 +78,22 @@ while [[ "$#" -gt 0 ]]; do
     -f|--fetch)
       fetch=true
       ;;
-    -r|--reset)
-      reset=true
+    -R|--reset-branch)
+      reset_branch=true
       ;;
     -n|--no-init)
       init=false
+      ;;
+    -r|--restore)
+      restore_init=true
+      ;;
+    -i|--install-modules)
+      modules_to_install="$2"
+      shift
+      ;;
+    -I|--init-modules)
+      modules_to_init="$2"
+      shift
       ;;
     *)
       if [ -z "$name" ]
@@ -110,7 +135,7 @@ switch_branch() {
   branch_name="$2"
   fetch="$3"
   must_reset="$4"
-  cd "$HOME"/src/all/"$repo" || (>&2 echo "Repo $repo not found"; exit 1)
+  cd "$HOME"/src/"$repo" || (>&2 echo "Repo $repo not found"; exit 1)
 
   branch=$(git branch | grep -E "$branch_name\$" >/dev/null && echo "$branch_name")
   if [ "$fetch" = true ] && [ -z "$branch" ]
@@ -125,7 +150,7 @@ switch_branch() {
     if [ "$must_reset" = true ]
     then
       echo "[$repo side] Resetting branch..."
-      git reset --hard "$repo"-dev/"$branch_name" >/dev/null 2>&1 || echo "[$repo side] Reset failed."
+      git fetch "$repo"-dev "$branch_name" >/dev/null 2>&1 && git reset_branch --hard "$repo"-dev/"$branch_name" >/dev/null 2>&1 || echo "[$repo side] Reset failed."
     fi
     return 0
   fi
@@ -141,13 +166,13 @@ echo
 echo "Switching Odoo version..."
 cv "$odoo" > /dev/null
 
-if echo "$name" | grep -oEq 'master|(saas-)?[0-9]{2}\.[0-9]-'
+if echo "$name" | grep -oEq '^master|(saas-)?[0-9]{2}\.[0-9]-.'
 then
   echo
   echo "Looking for specific branch..."
-  switch_branch odoo "$name" "$fetch" "$reset" &
+  switch_branch odoo "$name" "$fetch" "$reset_branch" &
   oc_process=$!
-  switch_branch enterprise "$name" "$fetch" "$reset" &
+  switch_branch enterprise "$name" "$fetch" "$reset_branch" &
   oe_process=$!
 
   wait $oc_process
@@ -167,7 +192,7 @@ echo
 echo "Specifying DB..."
 if [ -z "$database" ]
 then
-  opw=$(echo "$name" | grep -oE '([0-9]{7})' | head -1)
+  opw=$(echo "$name" | grep -oE '([0-9]{3,})' | head -1)
   if [ "$is_branch" = true ] && [ "$opw" ]
   then
     fw=$(echo "$name" | grep -Eo '\-fw$' || echo "")
@@ -178,7 +203,16 @@ then
 fi
 setdb "$database"
 
-if [ "$odoo" != "master" ] && [ "$init" = true ] && ! ldb | grep -Eq "^$database$"
+
+
+echo
+ostate "New configuration"
+
+
+
+if [ -n "$modules_to_init" ]; then
+  odoo-install "$modules_to_init"
+elif [ "$odoo" != "master" ] && [ "$init" = true ] && ! ldb | grep -Eq "^$database$"
 then
   template="${odoo}__init"
   if ldb -a | grep -Eq "^$template$"
@@ -190,9 +224,18 @@ then
     cp -rf ~/.local/share/Odoo/filestore/"$odoo"/* ~/.local/share/Odoo/filestore/"$database"/
     savedb init
   fi
+elif [ "$restore_init" = true ] && ldb -a | grep -Eq "^${database}__init$"
+then
+  echo
+  echo "Restoring DB to initialization savepoint..."
+  restoredb init
 fi
 
-
-
-echo
-ostate "New configuration"
+if [ -n "$modules_to_install" ]; then
+  echo
+  read -r -p "Install $modules_to_install ? (Y/n): " res
+  res=$(echo "$res" | tr '[:upper:]' '[:lower:]')
+  if [[ $res =~ ^(yes|y|)$ ]]; then
+    odoo-install -n "$modules_to_install"
+  fi
+fi

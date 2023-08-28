@@ -25,10 +25,15 @@ if $(find_db $to); then
 	dropdb $to
 fi
 
-if [ -d ~/.local/share/Odoo/filestore/$to/ ]; then
-  rm -r ~/.local/share/Odoo/filestore/$to/
-fi
-
-createdb -T $from $to
-mkdir ~/.local/share/Odoo/filestore/$to/
-cp -r ~/.local/share/Odoo/filestore/$from/* ~/.local/share/Odoo/filestore/$to/
+restore_filestore() {
+    if [ -d "$HOME/.local/share/Odoo/filestore/$to" ]; then
+        rm -rf $HOME/.local/share/Odoo/filestore/"$to"
+    fi
+    if [ -d $HOME/.local/share/Odoo/filestore/"$from" ]; then
+        mkdir $HOME/.local/share/Odoo/filestore/"$to"
+        cp -rf $HOME/.local/share/Odoo/filestore/"$from"/* $HOME/.local/share/Odoo/filestore/"$to"/
+    fi
+}
+restore_filestore &
+createdb -T $from $to &
+wait

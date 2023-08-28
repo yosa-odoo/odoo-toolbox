@@ -2,7 +2,7 @@
 
 set -e
 
-versions=${1:-14.0 15.0 saas-15.2 16.0 master}
+versions=${1:-14.0 15.0 saas-15.2 16.0 saas-16.2 saas-16.3 master}
 repos="odoo enterprise"
 path="$HOME/src/all"
 

@@ -1,16 +1,35 @@
-#!/usr/bin/zsh
-echo $PATH
+#!/bin/bash
+
+delete_db=true
+
+while getopts ":n" o; do
+  case "${o}" in
+    n)
+      delete_db=false
+      shift
+      ;;
+    *)
+      echo "Illegal option" && exit 1
+      ;;
+  esac
+done
+
 db=$(getdb)
 
 killodoo
-dropdb --if-exists $db
 
-$HOME/odoo-env/Xenv/bin/python3 $HOME/src/all/odoo/odoo-bin --stop-after-init $@
+if [ "$delete_db" = true ]
+then
+  dropdb --if-exists $db
+  rm -rf $HOME/.local/share/Odoo/filestore/$db
+fi
 
-psql -d $db -c "update ir_cron set active=false;"
-psql -d $db -c "insert into ir_config_parameter(key,value) values ('database.expiration_date','2998-05-07 13:16:50');"
+$HOME/odoo_env/Xenv/bin/python $HOME/src/all/odoo/odoo-bin -c $HOME/.odoorc --stop-after-init -i $@
+
+if [ "$delete_db" = true ]
+then
+  psql -d $db -c "update ir_cron set active=false;"
+  psql -d $db -c "insert into ir_config_parameter(key,value) values ('database.expiration_date','2998-05-07 13:16:50');"
+fi
 
 savedb init
-
-notify-send $db "The database is ready"
-play_complete
